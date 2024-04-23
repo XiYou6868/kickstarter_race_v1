@@ -1,0 +1,281 @@
+The initial Project part dataset is compiled from three separate Kickstarter data files, spanning various periods and containing a wide array of project information:
+
+kickstarter1009V3.xlsx
+kickstarter1011V3.xlsx
+kickstarter1018V2.xlsx
+These files are located in Kickstarter_0406/data/1.Original/ and were concatenated into a single DataFrame to form a comprehensive dataset for analysis.
+The process starts with importing  Pandas  NumPy, and regex  for data cleaning and preprocessing.
+The combined dataset initially has 89,093 entries and 37 features. Important columns include ProjectID, Subcategories, URL, State, ProjectName, and others. Each feature represents different aspects of Kickstarter projects, like ID, category, status, and creator details.
+
+
+1.	ProjectID (int64): A unique numeric identifier for each Kickstarter project. Examples: 1, 2, 3.
+
+2.	Subcategories (object): The specific subcategory to which the project belongs.Examples: 'Tabletop Games' which should be  within 'Games'.
+ 
+
+3.	URL (object): The direct URL to the project page on Kickstarter. Examples include:
+https://www.kickstarter.com/projects/oceanusbrass/hook
+https://www.kickstarter.com/projects/newtral/newtral-magich
+
+4.	State (object): The current status of the project, which can be 'successful', 'unsuccessful', 'upcoming', 'live', 'suspended', or 'canceled'.
+
+5.	ProjectName (object): The name or title of the Kickstarter project. For example, "Eco-Friendly Water Bottles".
+
+6.	ProjectDescription (object): A brief introduction or summary of the project, typically consisting of one or two sentences.For example,’ PrintABlok, the toy of the future, is going Robo. Awesome articulated mechas with mini pilot figures to drive them!’.
+
+7.	CreatorName (object): The name of the individual or organization that created the project.
+
+8.	LastUpdate (object): The date and time when the latest project update was posted by the creator.For example, 2015-04-06T14:15:36-04:00, 2017-02-01T09:38:24-05:00.
+
+9.	CreatorLocation (object): The geographic location of the project creator, usually in USA. the location typically follows the format "[City], [State Abbreviation]". An example provided is "Delaware, OH", where "Delaware" represents the city and "OH" stands for Ohio, a state in the USA. The project is located in USA, but the creator can be international. For example, the location of the creator might be Shenzhen, China.
+
+10.	Verified (object): Indicates the verification name used for the project creator’s verification. To launch a project on Kickstarter, a creator must first go through steps to verify their identity, this ensures that they are a real person.
+In the 'Verified' column, we usually have specific names like Tim Boundy, Keith Shirtscases; "Identity Not Verified" or "Name Not Available(name not avilable)" 
+
+11.	LastLogin (object): The date and time when the project creator last logged into the Kickstarter platform. For example,October 10 2023，Sep 14 2023. 1
+
+12.	Connect (object): 
+Information related to the social media connections of the project creator, usually Facebook account details. 
+Three patterns observed in this column: "Not connected", "[Number] friends" (e.g., '1,464 friends'), Specific name (e.g., 'Grant Takara').
+
+13.	Text (object): Brief information about the project creator, typically formatted as 'X created · Y backed' where X and Y are numbers.
+We Created 'TotalCreated', 'TotalBacked'based on the number extracted from the ‘Text’. We ensured  'TotalCreated', 'TotalBacked' is accurately converted from string representations to float for proper numerical analysis.
+
+14.	Created (object): The total number of projects that the creator has initiated on Kickstarter.For example,1,455. We ensured ‘Created’ is accurately converted from string representations to float for proper numerical analysis.
+
+15.	backed (object): The total number of different Kickstarter projects that the creator has supported as a backer.For example,12,300.We ensured ‘backed’ is accurately converted from string representations to float for proper numerical analysis.
+
+16.	Joined (object): The date when the project creator first joined the Kickstarter platform.For example, 2020-05-16T02:37:41-04:00, 2017-02-13T04:01:08-05:00. We corrected date columns to datetime format for time-series analysis. For example，2023/9/15  0:00:00
+
+17.	CreatorURL (object): The URL to the profile page of the project creator on Kickstarter.
+For example, https://www.kickstarter.com/profile/3dprinteracademy/about.
+
+18.	Biography (object): A self-written introduction or background provided by the project creator, typically found on their Kickstarter profile page.For example, “Backer Favorite,YouTuber, Award winning 3D designer, and author of many 3D printing books”.
+
+19.	UpdateCount (object): The number of updates the project creator has posted on the project page during the campaign.For example,the project creator may update information like, “Congratulation!! The crowdfunding of MT2A Pro Flashlight has been finished.”, “MT2A PRO has been arranged for shipping today.” We ensured ‘Created’ is accurately converted from string representations to float for proper numerical analysis.
+
+20.	CommentCount (object): The total number of comments posted on the project page by backers or interested viewers.For example,the they comment ‘Hi,This is backer 316.I‘m still waiting for my item.Regards,Michael’. 
+
+21.	ProWeLove (object): Indicates whether the project has received a "Project We Love" badge from Kickstarter, marking it as a staff pick.1 for "Project We Love",0 for not.
+
+22.	ProjectLocation:This column contains the geographical information regarding where each Kickstarter project is based or where the project activities are taking place. For datasets specific to the USA, the location typically follows the format "[City], [State Abbreviation]". An example provided is "Delaware, OH", where "Delaware" represents the city and "OH" stands for Ohio, a state in the USA. 
+
+23.	 Pledged (object):This field represents the total amount of funding that backers have pledged to support the project. The values might be presented in various currencies, as indicated by examples like "$2,500" or "CA $2,500". This variation poses a challenge for consistent data analysis since the comparisons and aggregations across projects require a common currency base.
+
+24.	 Goal (object):
+Similar to "Pledged", this field records the financial target set by the project creator for successful funding, with values also appearing in various currencies.
+
+25.	Backer (object): The total number of individuals who have pledged money to support the project. For example, 10,000. 
+
+26.	Story (object): A detailed narrative provided by the project creators about their goals, motivations, and how they plan to use the pledged funds. 
+
+27.	StartDate (object): The date when the fundraising campaign for the project was initiated. For example,2018-\n\n3-13.
+
+28.	EndDate (object): The closing date of the fundraising campaign for the project. For example,2018-\n\n3-13. We corrected date columns to datetime format for time-series analysis. For example，2023/9/15  0:00:00
+
+29.	Days (object): The total number of days the fundraising campaign is set to run.The time span of [‘StartDate’]and [‘EndDate’].For example, 30.
+
+30.	Featured (object): The featured content of the project.Indicates whether the project has been featured by Kickstarter in a special category or spotlight.
+‘Feature’ has 545 entries.
+ 
+31.	RemainingDays (object): For live projects, this shows the number of days left until the fundraising campaign ends.
+
+32.	ActualEndDate (object): For projects that have ended prematurely (canceled, or suspended), this is the actual end date of the campaign.
+33.	ImgCount (int64): The total number of images uploaded to the project page, indicating the level of visual content provided.
+
+34.	videoCount (int64): The count of original videos (excluding YouTube links) associated with the project, providing a measure of multimedia engagement.
+
+35.	youtubeCount (int64): The number of YouTube videos that have been linked or embedded within the project's page.
+
+36.	webList (object): A list of URLs for personal or project-related web pages provided by the project creator on their Kickstarter profile.
+Create a new column 'WebNum' to count the number of URLs in the 'webList' column.
+
+37.	CreatorURL (object): Another URL leading to the project creator’s personal or professional webpage, distinct from the Kickstarter profile page.
+
+
+
+The preprocessing effort of Data preprocessing-V3.ipynb,results in two refined datasets:
+1.Version with Foreign Currencies as NaN: After cleaning and addressing entries with non-USD currencies by setting them to NaN, this version of the dataset, referred to as kickstarter_cleaned_fullversion_v3.xlsx, comprises 87,805 entries.
+
+2.Version with Currency Conversion: This version, named kickstarter_cleaned_fullversion_v3_usd.xlsx, includes entries where foreign currencies have been converted to USD. Following preprocessing, it encompasses 89,013 entries.
+
+Variables in kickstarter_cleaned_fullversion_v3.xlsx and kickstarter_cleaned_fullversion_v3_usd.xlsx:
+1. RewardID (Integer): The unique numerical identifier assigned to each reward tier, crucial for differentiation and reference in the dataset.
+
+2. ProjectID (Float): Unique number representing each project, facilitating linkage between rewards and their respective projects. Despite being a float due to technical constraints, it logically identifies discrete projects.
+
+3. Status (bool): The reward's availability status: 'Available rewards' and ‘All gone.We set False for 'Available rewards',True for the ‘All gone’.
+
+4. Amount (Float): The required pledge amount in USD for each reward, indicating the financial commitment backers need to make to receive this reward.
+
+5. BackersNum (Integer): Total count of backers who supported the project at this reward level, reflecting the reward tier's popularity.
+
+6. RewardDescript (String): Detailed narrative of the reward, outlining what backers will receive for their contributions, varying in length and complexity.
+
+7. EstimatedDelivery (Date): Anticipated delivery date for the reward, formatted as 'YYYY-MM-DD,' providing backers with a timeline for reward fulfillment.
+
+8. RewardName (String): The creative title or designation of the reward tier, often including unique names, special characters, or numbers, utilized for quick identification and marketing appeal.
+
+1.	ProjectID (int64):As defined earlier.A unique numeric identifier for each Kickstarter project. Examples: 1, 2, 3.
+
+2.	Subcategories (object): As defined earlier.The specific subcategory to which the project belongs.Examples: 'Tabletop Games' which should be  within 'Games'.
+
+3.	URL (object): As defined earlier.The direct URL to the project page on Kickstarter. Examples include:
+https://www.kickstarter.com/projects/oceanusbrass/hook
+https://www.kickstarter.com/projects/newtral/newtral-magich
+
+4.	State (object): We standardized the 'State' column by mapping both 'Unsuccessful' and 'unsuccessful' to 'failed'.Values can be 'successful', 'failed', 'upcoming', 'live', 'suspended', and 'canceled', signifying whether the project has reached its funding goal, failed to do so, or is still in the process of fundraising.
+
+5.	ProjectName (object): As defined earlier.The official title or name given to the Kickstarter project by the creator.
+
+6.	ProjectDescription (object): As defined earlier.A short overview or summary provided by the creator that describes what the project is about.
+
+7.	CreatorName (object): The name of the individual or group that initiated the Kickstarter project. In processing the 'CreatorName' field, particularly for tasks like standardization and cleaning while preserving cultural and linguistic nuances, specific symbols like "（已刪除）" (which translates to "Deleted") and trademark symbols like "™" can be removed. These elements are typically artifacts from data collection processes and do not contribute to identifying individuals or organizations' genuine names. We choose to remove non-ASCII characters in our dataset, especially those not part of genuine names, are mostly artifacts from the scraping process and the brand name.Hence, for data cleaning purposes, removing such characters can improve the dataset's consistency without significantly affecting cultural or linguistic integrity. This action is considered beneficial for analyses focusing on race and gender predictions or other demographic studies, as it focuses on actual names while discarding irrelevant symbols and errors introduced during data scraping.
+
+
+8.	LastUpdate (datetime64[ns]): The date and time when the project was last updated. It’s significant for backers to track the project's progress.We corrected date columns to datetime format for time-series analysis. For example，2023/9/15  0:00:00
+
+9.	UpdateCount (Int64): Total number of updates the project creator has posted. 
+
+10.	CommentCount (Int64): The total number of comments posted on the project page. A high number can indicate a high level of backer engagement or interest.
+
+11.	ProWeLove (bool): A boolean indicating whether the project has been highlighted as a "Project We Love" by Kickstarter, often signifying a project of high quality or interest.
+True: The project has been given a "Project We Love" badge.
+False: The project has not been given the badge.
+
+12.	ProjectLocation (object): As defined earlier.
+
+13.	Pledged (float64): The total amount of money pledged by backers. For kickstarter_cleaned_fullversion_v3.xlsx , amounts are in original currency; for and kickstarter_cleaned_fullversion_v3_usd.xlsx, they're in USD.
+
+14.	Goal (float64): The financial goal set by the project creator for the campaign to be considered successful.
+
+15.	ImgCount (int64): The number of images posted on the project's page, indicative of visual content.
+
+16.	videoCount (int64): How many original videos have been uploaded to the project page.
+
+17.	youtubeCount (int64): The count of YouTube videos linked within the project's page.
+
+18.	Backer (Int64): The total count of individuals who have pledged money to support the project.
+
+19.	StartDate (datetime64[ns]): The date when the fundraising campaign began.
+
+20.	EndDate (datetime64[ns]): The date when the fundraising campaign is scheduled to end.
+
+21.	Days (Int64): The total number of days the fundraising campaign lasts.
+
+22.	Featured (object): As defined earlier. The featured content of the project.Indicates whether the project has been featured by Kickstarter in a special category or spotlight.
+
+23.	Story (object):  As defined earlier.Detailed description provided by the creators about the project, including their goals, inspiration, and how they intend to use the funds.
+
+24.	CreatorLocation (object):  As defined earlier.Indicates the location of the project creator.
+
+
+25.	Verified (object): the creator's identity has been verified.derived from ’ Verified’， only contains the specific name,like'Jeffrey Wolfe'.
+
+26.	CreatorURL (object):  As defined earlier.A link to the project creator's Kickstarter profile page.
+
+27.	Connect (object):  As defined earlier.Information about the creator’s social media connections, indicating the level of their online presence or network.
+
+28.	Text (object):  As defined earlier.Summary information about the project creator, such as the number of projects created and backed.
+
+29.	Biography (object): As defined earlier. A self-description provided by the project creator, offering background information and context.
+
+30.	backed (Int64): The total number of Kickstarter projects that the creator has supported.
+
+31.	joined (datetime64[ns]): The date when the creator first joined Kickstarter.
+
+32.	create (Int64): The total number of projects initiated by the creator on Kickstarter.
+
+33.	webList (object):  As defined earlier.A list of URLs provided by the creator, potentially linking to more information, social profiles, or related projects.
+
+34.	Category (object): The main category that the project is listed under, derived from 'Subcategories'. For our focus, this would specifically be 'Technology', 'Design’ ‘Game’.
+
+35.	WebNum (int64): The total count of web URLs listed by the project creator., derived from 'webList '. 
+36.	IsFeatured (bool): Indicates if the project has been featured in any special category or spotlight by Kickstarter，derived from 'Featured '. 
+True: The project was featured, suggesting a level of endorsement or highlight by Kickstarter.
+False: The project was not featured.
+37.	IsConnect (bool): Shows whether the project creator has linked their social media accounts to the Kickstarter profile，derived from 'Connect '. 
+
+True: The creator's account is connected to social media, possibly indicating more openness and avenues for communication.
+False: The creator's account is not connected to social media platforms.
+
+38.	TotalCreated (Int64): The total number of projects that the creator has launched on Kickstarter derived from’Text’.
+
+39.	TotalBacked (Int64): The total number of different projects the creator has supported as a backer, showing their level of engagement and support within the Kickstarter communityderived from’Text’.
+
+40.	IsIdentityVerified (bool): Based on the 'Verified',Whether the project creator's identity has been verified by Kickstarter, enhancing trust and credibility..
+
+True: The creator's identity has been officially verified, increasing trustworthiness.
+False: The creator's identity has not been verified, which may raise questions about credibility.
+
+41.	IsVerifiedIDAvailable (bool): Based on the 'Verified',Indicates if there is a verified identity name available for the project creator.
+True: A verified name is available, showing that there is transparent information about the creator.
+False: No verified name is provided, which might imply less transparency or missing information.
+
+The initial Reward part dataset is compiled from three separate Kickstarter data files, spanning various periods and containing a wide array of Reward information:
+kickstarter1011_rewards.xlsx
+kickstarter1009_rewards.xlsx
+kickstarter1018_rewards.xlsx
+These files are located in Kickstarter_0406
+/data/1.Original/ and were concatenated into a single DataFrame to form a comprehensive dataset for analysis.
+This initial dataset contains a total of 651,796 entries,including columns like RewardID, ProjectID, Status, Amount, and EstimatedDelivery.
+
+
+1.	RewardID (float64): Most are NaN.A unique numeric identifier for each reward. Examples: 101.0, 102.0, 103.0.
+
+2.	ProjectID (float64): A unique numeric identifier for each Kickstarter project. This is a floating-point number. Examples: 1.0, 2.0, 3.0.
+
+3.	Status (object): The current status of the project or reward, represented as text. 'Available rewards', 'All gone'
+
+4.	Amount (object): The pledge amount or financial goal associated with the project or reward, stored as text. This could include currency symbols and might need conversion for numerical analysis. Examples: '$100', '€50', '£20'.
+
+5.	BackersNum (int64): The number of backers for the project, represented as an integer. This provides a count of how many individuals have supported the project financially. Examples: 10, 50, 100.
+
+6.	RewardDescript (object): A textual description of the reward, providing details on what backers will receive for their support. Examples: 'A digital download of the game', 'A personalized thank you note', 'An exclusive T-shirt'.
+
+7.	EstimatedDelivery (object): The expected delivery date for the reward, likely stored as a string. Dates may be in various formats and could require conversion to datetime objects for analysis. Examples: 'December 2021', '2022-05-01', 'Jan 2023'.
+
+8.	Limitedquantity (object): Indicates if the reward is available in limited quantities, with very few non-null entries. Examples: 'Limited to 100 units'.
+
+9.	Shipsto (object): Most are NaN.Information about where the project or reward can be shipped, represented textually. Examples: 'Worldwide', 'USA only', 'EU countries'.
+
+10.	Included (object): Most are NaN. Details on what is included with the reward, described textually. Examples: 'Includes sticker pack', 'All digital content', 'Name in credits'.
+
+11.	RewardName (object): The name or title of the reward, providing a brief identifier or description. Examples: 'Early Bird Special', 'Collector's Edition', 'Digital Download'.
+
+Original Format: This version maintains the original currency formats where conversion to USD was not applicable. It's particularly useful for analyses where native currency values are necessary or for historical data integrity. This version, titled 'kickstarter_reward_fullversion_v3.xlsx', contains 651,031 entries after deduplication.
+USD Standardized Format: This version includes rewards where various foreign currencies have been standardized to USD amounts, enabling straightforward, cross-project financial comparisons. Entries with non-convertible or unclear currency data might be converted to NaN (not-a-number) to maintain consistency and avoid misleading analysis. This file is saved as 'kickstarter_reward_fullversion_usd_v3.xlsx' and includes 651,034 entries post-deduplication.
+
+Column Descriptions of 'kickstarter_reward_fullversion_v3.xlsx' and 'kickstarter_reward_fullversion_usd_v3.xlsx':
+1. RewardID (Integer): The unique numerical identifier assigned to each reward tier, crucial for differentiation and reference in the dataset.To ensure every reward entry has a unique identifier, the RewardID column is regenerated as a continuous range, which replaces any missing or inconsistent values.
+
+2. ProjectID (Float): Unique number representing each project, facilitating linkage between rewards and their respective projects. Despite being a float due to technical constraints, it logically identifies discrete projects.
+
+3. Status (bool): The reward's availability status: 'Available rewards' and ‘All gone’.We set False for 'Available rewards',True for the ‘All gone’.
+
+4. Amount (Float): The required pledge amount in USD for each reward, indicating the financial commitment backers need to make to receive this reward.
+
+5. BackersNum (Integer): Total count of backers who supported the project at this reward level, reflecting the reward tier's popularity.
+
+6. RewardDescript (String): Detailed narrative of the reward, outlining what backers will receive for their contributions, varying in length and complexity.
+
+7. EstimatedDelivery (datetime64[ns]): Anticipated delivery date for the reward, formatted as 'YYYY-MM-DD,' providing backers with a timeline for reward fulfillment.
+
+8. RewardName (String): The creative title or designation of the reward tier, often including unique names, special characters, or numbers, utilized for quick identification and marketing appeal.
+
+Filter the data for ended projects with an end date between January 1, 2015, and December 31, 2022 within 'Technology', 'Design’ ‘Game’Category.
+1.Non converted USD version:"kickstarter_cleaned_fullversion_v3.xlsx" for the original USD In’Pledged’ and ‘Goal’ dataset in Feature Engineering-V3.ipynb.From 87805 to 54978.
+The kickstarter_cleaned_fullversion_v3.xlsx consists of detailed records spanning various aspects of Kickstarter projects that the non-dollars convert to nan.
+Initially, the dataset comprised 87,805 entries across 41 diverse columns, encompassing information such as project identifiers, state, financial goals, creator details, and engagement metrics.
+We filtered projects to only include those with an end date between January 1, 2015, and December 31, 2022 and specifically be 'Technology', 'Design’ ‘Game’Category.
+This allows us to focus on recent projects and trends.
+Project State: We included only projects classified as 'successful' or 'failed', facilitating a binary classification approach. The 'State' column was converted to a boolean value for simplicity, with 'successful' mapped to True and 'failed' mapped to False. This transformation simplifies the dataset and tailors it for binary logistic analysis.
+Post initial deduplication (the feature except 'ProjectID', 'URL', and 'CreatorURL'), the dataset remained with 55,638 unique projects. A secondary round of deduplication was executed excluding attributes deemed non-critical for duplication assessment ('Text', 'backed', 'create', 'TotalCreated', 'TotalBacked'). This additional deduplication step brought the project entries down to 54,978. This further deduplication (continue to exclude attributes ‘Subcategories’ and ‘Category’) the number of entries is still 54978.
+Columns deemed non-essential for the impending analysis ('Text', 'backed', 'create', 'TotalCreated', and 'TotalBacked') were removed. This step was taken to declutter the dataset and focus on the most impactful variables.
+Filtered Dataset Characteristics: Post-filtering and cleaning, the dataset was condensed to 54,978 unique entries, maintaining the integrity of the original 36 columns but now streamlined to focus on relevant and distinct projects fitting the study criteria.The cleaned dataset was saved as 'kickstarter_filtered_v3.xlsx'. 
+
+2.Converted to USD version:"kickstarter_cleaned_fullversion_usd_v3.xlsx" for the USD-converted dataset In’Pledged’ and ‘Goal’ in Feature Engineering-V3 usd.ipynb.From 89013 to 56638.
+For the"kickstarter_cleaned_fullversion_usd_v3.xlsx", originally, there were 89,013 entries. After these same filtering and cleaning processes , it was reduced from its original 89,013 entries to 56,638 unique entries. This filtered dataset contains cleaned and relevant information ready for deeper analysis and modeling.
+The final cleaned and filtered dataset for the USD version was then saved as 'kickstarter_filtered_usd_v3.xlsx'.
+
+

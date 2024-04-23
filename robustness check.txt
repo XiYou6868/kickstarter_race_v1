@@ -1,0 +1,62 @@
+1. Count Verification for Multi-Founder Projects
+Verify that the tally of projects identified with multiple founders in the original dataset matches the increase in data rows ('CoCreatorNum')after individual entries for creators have been expanded. This ensures that the expansion process accurately reflects multi-founder projects without loss or duplication.
+
+2. Unique Project Identifiers Consistency Check
+Before expanding the dataset to include individual creator entries, We confirm that each project's unique identifier (ProjectID) has remained consistent. 
+After expanding the dataset to include individual creator entries, We confirm that each project's unique identifier (ProjectID) and each creator's unique identifier (CreatorID) have remained consistent. 
+
+3. Data Integrity Check for Expanded Entries
+Objective: Ensure that data related to each project (e.g., 'CreatorName', 'EndDate','Backer','RewardNum','Video_in_Description') remains unchanged after row expansion.
+Method: select the duplicated verify that the expanded rows maintain consistent project-related data.
+
+4. Creator Name Extraction Accuracy
+Objective: Validate the accuracy of the 'ExtractedCreators' column by comparing it against manual extraction.
+Method: Manually extract creator names from a randomly selected subset of projects and compare the results with the 'ExtractedCreators' column in the new data.A random sample size of approximately 350 entries would be appropriate to achieve a 95% confidence level with a 5% margin of error, considering the total population of 35161 entries with 'CreatorID'.
+Given that about 15 out of 350 of the 'ExtractedCreators' entries are incorrect,the accuracy of the  'ExtractedCreators' column would be approximately 95.71%. ​
+
+5. Gender and Race Prediction Sanity Check
+Objective: Assess the reliability of gender and race predictions for a subset of the expanded entries.
+Method: For a sample of the new dataframe's entries, manually verify the predicted gender and race from the 'SingleName'and ‘Verified’
+With the same random sample size of approximately 350 entries .
+The gender prediction(PrdTrcCreatorNameGender) of the 'SingleCreator' :Given that about 41 out of 350 of the entries,are incorrect,the accuracy of your 'PrdTrcCreatorNameGender' column would be approximately 88.29%. ​
+
+The gender prediction(PrdTrcVerifiedNameGender) of the 'Verified' :Given that about 48 out of 350 of the  entries are incorrect,the accuracy of your 'PrdTrcVerifiedNameGender' column would be approximately 86.29%. ​
+
+
+The race prediction(EthClrCreatorNameRace) of the 'SingleCreator:using Python's ethnicor:Given that about 
+95 out of 350 of the entries are incorrect,the accuracy of 'EthClrCreatorNameRace'column would be approximately 72.86%. 
+
+The race prediction(PyEthCreatorNameRace) of the 'SingleCreator:using Python's pyethnicity:Given that about 69 out of 350 of the entries are incorrect,the accuracy of 'PyEthCreatorNameRace'column would be approximately 80.69%. 
+
+The race prediction(PrdTrcCreatorNameRace) of the 'SingleCreator using R's predictrace:Given that about 61 out of 350 of the entries are incorrect,the accuracy of the 'PrdTrcCreatorNameRace' column would be approximately 82.57%. 
+
+The major race prediction (MajorCreatorNameRace) of the 'SingleCreator':Given that about 34 out of 350 of the entries are incorrect,the accuracy of  'MajorCreatorNameRace' column would be approximately 90.29%.
+
+The race prediction(EthClrVerifiedNameRace) of the 'Verified'using Python's ethnicolr :Given that about 95 out of 350 of the entries are incorrect,the accuracy of  'EthClrVerifiedNameRace' column would be approximately 72.86%. 
+
+The race prediction(PyEthVerifiedNameRace) of the 'Verified'using Python's pyethnicity :Given that about 74  out of 350 of the entries are incorrect,the accuracy of  'PyEthVerifiedNameRace' column would be approximately 78.86%. 
+
+The race prediction (PrdTrcVerifiedNameRace)of the 'Verified ' using R's predictrace : Given that about 56 out of 350 of the  entries are incorrect,the accuracy of 'PrdTrcVerifiedNameRace' column would be approximately 84%. 
+  
+ The major race prediction(MajorVerifiedNameRace) of the 'Verified'  :Given that about 28 out of 350 of the entries are incorrect,the accuracy of 'MajorVerifiedNameRace' column 92% would be approximately . 
+  
+ 
+
+6. Duplicate Entries Check
+We ensure that expanding the dataset to account for individual creators doesn't inadvertently introduce duplicate entries. A thorough check has been made for duplicates, particularly focusing on combinations of CreatorID, ProjectID, and 'SingleCreator'.
+
+7.CreatorID Formation:
+'SingleCreator' names combined with their join date are used to create a unique identifier (CreatorID). This method ties project creation and support to specific accounts, ensuring accurate tracking even as verified statuses change.
+Data Type Integrity: Verifying that data types are consistent across each column post-expansion is essential for maintaining the dataset's structural integrity.
+
+8.Handling Missing Data: The strategy for dealing with missing data involves maintaining 'NaN' values to preserve the dataset's authenticity and prevent the introduction of bias.For crucial identifier columns  'CreatorID''Project_CreatorID, we retain 'NaN' values where data of ['SingleCreator']('ExtractedCreators' is absent.  when 'SingleCreator' names are available, 'CreatorID' is formulated by appending the 'SingleCreator' name with their Kickstarter join date, underscore-separated. In cases where the join date is unavailable, we substitute with 'date_unknown' to indicate this explicitly.We use np.nan for representing missing values.
+
+For descriptive columns such as 'ProjectName', 'ProjectDescription', and 'Story', we adapt our strategy to ensure analytical continuity. Recognizing the importance of these narratives in our analysis, missing values are replaced with an empty string (''), allowing us to concatenate these fields into a comprehensive 'Description' column without introducing 'NaN' gaps.Similarly, for combined descriptive categories such as 'RewardDescription', which amalgamates 'RewardDescript' and 'RewardName', missing values are substituted with an empty string.
+
+For numeric columns like 'RewardNum', where missing data implies the absence of a value, we fill NaNs with '0' to accurately reflect this in our quantitative analyses.
+
+9.Verification of Unique Keys:
+Ensuring that key identifiers such as ProjectID and CreatorID remain unique post-expansion of the 'SingleCreator'.
+
+10.Checking data type integrity
+We ensure that In each column all data shall the same type.

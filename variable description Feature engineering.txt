@@ -1,0 +1,384 @@
+Feature Engineering for Project Part of Kickstarter Dataset
+README: Kickstarter Dataset Feature Engineering Overview（ 'kickstarter_creator_v4_usd_0421.xslx' and 'kickstarter_project_v4_usd_0421.xlsx'）
+kickstarter_creator_v4_usd_0421.xlsx (Creator Project Level Data):
+
+Includes additional variables: 'Project_CreatorID', 'CreatorID', 'SingleCreator', 'IsNameMatch', 'IsFirstTimer', 'ProjectsByCreatorID'.
+These variables are derived from unique individual identifiers (CreatorID) extracted by your team.
+kickstarter_project_v4_usd_0421.xlsx (Project Level Data):
+Does not include the additional variables present in the Creator Project Level Data.
+（1）Importing Libraries
+Library Importation
+The process begins by importing key Python libraries: Pandas, NumPy, regex, textstat, TextBlob, matplotlib, Flair and ethnicolr,pyethnicity
+
+Flair
+An easy-to-use framework for state-of-the-art NLP, leveraging pre-trained models for named entity recognition (NER), part-of-speech tagging, and classification tasks. For our purposes, we specifically use the flair/ner-english-fast model, which is optimized for speed and size (257 MB), making it suitable for quick analyses that require less computational overhead.
+
+Ethnicolr Package
+Ethnicolr is a Python package designed for predicting an individual's race and ethnicity from their name, utilizing data from the US Census, Florida voter registrations, and Wikipedia. It employs machine learning models for these predictions, providing detailed ethnic categorizations, particularly with Wikipedia data.
+Available from https://github.com/appeler/ethnicolr
+
+Pyethnicity Package
+The Pyethnicity package is designed to predict an individual's race and ethnicity based on their name and location. It leverages a comprehensive dataset compiled from voter registrations across all 50 states.Using advanced machine learning techniques, such as Bidirectional LSTM models and sophisticated geocoding algorithms like BISG and BIFSG, Pyethnicity achieves superior performance compared to existing models.license. Available from https://github.com/CangyuanLi/pyethnicity
+
+Additional Tools
+For race and gender prediction, we'll also employ R, specifically using the predictrace package by Kaplan, J. (2023), which utilizes Census and Social Security data for its predictions. Available from https://github.com/jacobkap/predictrace, https://jacobkap.github.io/predictrace/.
+
+
+（2）Data Collection
+The dataset we imported the the USD version of  'kickstarter_filtered_usd_v3.xlsx'.(56638 entries) and kickstarter_reward_fullversion_usd_v3.xlsx' and includes 651,034 entries post-deduplication.
+"kickstarter_cleaned_fullversion.xlsx"(54978 entries) and 'kickstarter_reward_fullversion_v3.xlsx', contains 651,031 entries.
+
+(3)Details:
+
+Educational Related:
+New features such as Education_Context, High_Educated_Bio, and Education_Level were created from the creator's biography to assess the impact of educational background. Education_Context: Extracted textual information indicating the educational background from the project creator’s biography.
+High_Educated_Bio: A binary indicator (True/False) signifying the presence of educational context within the biography section. Words like "graduate," "degree," "alumnus," and "educated" are recognized regardless of how they are capitalized. For example, "Graduate," "graduate," "GRADUATE," or "GrAdUaTe" would all be detected similarly.
+Education_Level (int64): Coded level of education mentioned by the creator (
+'Below Bachelors': high school or lower/not indicated,
+ 'Bachelors': Bachelor's,
+ 'Graduate': Graduate, 
+'Doctorate': Doctorate)., 
+
+Basic Features:
+First concatenate 'ProjectName', 'ProjectDescription', and 'Story' into a new 'Description' column.
+Then define a funtion named'clean_text(text)' to clean text by removing punctuation, emojis, and other non-alphanumeric characters and generate DescriptionSentiment(Sentiment Analysis) of DescriptionClarity(Readability Score).
+
+Description: Full text of the project description (The combination of the ‘Story:story told on the campaign of the project, ‘ProjectName’:project name, ‘ProjectDescription’:project description).
+
+DescriptionLength : Length of the cleaned ‘Description ‘(applied the function for removing punctuation, emojis, and other non-alphanumeric characters of the 'Description'),project description.
+
+DescriptionSentiment: Sentiment score of the cleaned ‘Description'(applied the function for removing punctuation, emojis, and other non-alphanumeric characters of the 'Description').This column contains the sentiment polarity score (-1 to 1) for each cleaned 'Description'(removing punctuation, emojis, and other non-alphanumeric characters), calculated using the TextBlob library. A higher score indicates more positive sentiment.
+
+DescriptionClarity: Clarity score of the cleaned ‘Description ',project description(applied the function for removing punctuation, emojis, and other non-alphanumeric characters of the 'Description').This column contains the Flesch-Kincaid Grade Level score for each cleaned 'Description'(removing punctuation, emojis, and other non-alphanumeric characters)calculated using the textstat library. It represents the estimated reading grade level required to understand the text, with higher values indicating more complex language.
+
+Supportiveness: A feature representing the average donation per backer. The pledged amount is derived from the 'Pledged'. The number of backers is derived from the‘Backer’  .If the number of backers is zero, set the value to zero to avoid division by zero.
+
+Video in Description: Counts the total number of videos(the sum of 'videoCount' and 'youtubeCount' in the project description, providing insights into multimedia usage.
+
+Total pledges: Applied the log(x + 1) to the 'Pledged' column to transform the total amount pledged for each project. This transformation helps to normalize the distribution and reduce the skewness of funding amounts.
+
+Time span: Utilized log(x + 1) on the 'Days' column, converting the duration of each campaign into a logarithmic scale. This addresses scale disparities between short and long campaigns.
+
+Financing goal: Transformed the 'Goal' column using log(x + 1), standardizing the financial goals across different projects for better comparability.
+
+Log_DescriptionLength: Applied log(x + 1) to the 'DescriptionLength' column to normalize the length of project descriptions.
+
+
+Time-Related Features: We extracted the year, month, and day of the month 'YearStartDate', 'MonthStartDate', 'DayStartDate', 'YearEndDate', 'MonthEndDate', 'DayEndDate' from both the ‘StartDate’ and ‘EndDate’ to explore temporal trends for Stata.
+
+Location-Related Features:
+ProLocationState and CreatorLocationState: These columns represent the state abbreviations extracted from 'ProjectLocation' and 'CreatorLocation' respectively. They help identify the geographic locations of the projects and their creators, which can be useful for understanding regional trends or preferences in crowdfunding campaigns. For example, 'CA' for California or 'NY' for New York.
+ProLocationState :Since the Kickstarter projects are all within the USA.So we can match the abbreviations of 50 U.S. states and the District of Columbia (DC) based on the ‘ProjectLocation.’ by creating the list of valid US state abbreviations(the number of abbreviations is 51) and the city that converted to state.
+CreatorLocation:The creator location of the project can be somewhere outside the USA, such as ‘Shenzhen,China’.We convert and  keep the state abbreviations for US cities and the country of the city outside the US.
+IsLocationMatch: This is a binary indicator (True/False) derived from comparing 'ProjectLocation' and 'CreatorLocation'. If the project and creator are located in the same place, this field is True; otherwise, it is False. This can indicate whether the project has a local or more distant creator, which might influence backers' trust and engagement.
+IsDomesticCreator: This binary field indicates whether the creator is from the United States, based on whether 'CreatorLocationState' is among the standard US state abbreviations. A True value suggests the creator is US-based, while False indicates they are from outside the US. This can affect backers' perceptions and the project's appeal, particularly in terms of shipping costs, cultural relevance, and support.
+Features like ProLocationState, CreaLocationState, and LocationMatch were developed to explore the geographical dynamics between project and creator locations.
+IsLocationMatch and IsDomesticCreator determine the congruence between the project's and creator's locations, potentially influencing project success.
+
+Reward Structure Analysis
+We import the kickstarter_reward_fullversion_v3_usd.xlsx non-US currency amounts converted to USD, which has 651,034 entries (rows) and kickstarter_reward_fullversion_v3.xlsx is imported, where non-USD currency amounts are assigned as NaN values.The imported data is stored in a DataFrame named rw, which has 651,031 entries (rows) 
+The reward part both has 9 columns, RewardID, ProjectID, Status, Amount (in USD), BackersNum, RewardDescript, EstimatedDelivery, and RewardName.
+Our methodology aggregates reward information by ProjectID, consolidating related data into lists per project and create RewardDescript(the list of RewardDescript of Reward), EstimatedDelivery(the list of EstimatedDelivery of Reward), RewardName(the list of RewardName of Reward), Amount(the list of Amount of Reward), BackersNum(the list of RewardDescript of Reward), Status(the list of Status of Reward).
+We then calculate
+AverageAmount: The unweighted mean of the 'Amount' column (average reward amount) for each project 'ProjectID'.
+AverageDeliveryTime: The unweighted mean of the DeliveryTime column (average delivery time),unweighted average of the number of days between the EndDate and each type of EstimatedDelivery dates.
+AvailableRewards: The count of type rewards where Status is 0 ("All gone").
+We next create description-related variables by combining and analyzing text from both project and reward descriptions:
+The code starts by combining the 'RewardDescript' and 'RewardName' columns into a new column called 'RewardDescription'. 
+Next, we group the cleaned reward descriptions by 'ProjectID' and concatenate them into a single 'CombinedRewardDescription' column for each project, separating the individual descriptions with " | ".
+
+CombinedRewardDescription: Cleaned text of the all types of  rewards description of the unique projectID.
+
+Subsequently, the code calculates three new features based on the 'CombinedRewardDescription':
+RewardDescriptionSentiment: This column contains the sentiment polarity score (-1 to 1) for each cleaned 'CombinedRewardDescription', calculated using the TextBlob library. A higher score indicates more positive sentiment.
+RewardDescriptionClarity: This column contains the Flesch-Kincaid Grade Level score for each cleaned 'CombinedRewardDescription', calculated using the textstat library. It represents the estimated reading grade level required to understand the text, with higher values indicating more complex language.
+RewardDescriptionLength: This column contains the word count for each cleaned 'CombinedRewardDescription'.
+
+Description Race-Related Analysis: 
+We want to find the product based cue about race from the ‘Description’ (the combination of 'ProjectName', 'ProjectDescription', and 'Story' )of the project.The code defines a list of race-related keywords and patterns ('race_keywords') to identify racial or ethnic contexts within the project descriptions. It creates two new columns:
+RaceKeywords: A list of matching race-related keywords found in the 'Description' column, identified using regular expressions. We utilize a set of keywords derived from academic research by Lauren Rhue and Jessica Clark Robert H. Smith(2022)Table A1. Top Most-Predictive Words for Each Racial Group .In addition to the academic list, we incorporate keywords manually selected based on their relevance to the racial group labeled as "BLACK". Here is the list of race-related keywords used for matching:
+'racial', 'racism', 'racially','minorities','minority','ethnicities','ethnicity',r'\bEthnic\b',
+     'Cultural diversity', 'global diversity',
+  'People of color','Person of color','cultures of color',
+    'Black & White','black-and-white','black and white',  r'\bWhite Supremacy\b',
+    'Black man','Black men','Black woman','Black women','black people',
+    'Black art',  'Black student', 'Black culture', 'Black space', 'black founder',
+    'As Black','Shop Black','Buy Black','blackness','black entrepreneur', 'black business', 'black dollar','black youth',
+   'Black story', 'Black-owned',  'Black owned','black professional', 'black innovator', 
+    'Black community',  'black communities',  'black family', 'black lives','black life',
+     'Black history', 'Black heritage', 'Black right',
+    'hip hop','gospel music','Afican','hop album',
+    'African American','African-American','Black American',
+    r'\bBIPOC\b',r'\bPOC\b',r'\bblacks\b', r'\bDiaspora\b', r'\bMulticultural\b',
+        'discrimination', r'\bequal\b','inclusion','inclusivity','inclusive','diversity',
+    'social justice','social prejudice', 'segregation', 'marginalized', 'oppression', 'civil right', 
+    'affirmative action',  'underrepresented', 'historical marginalization','civil liberties',
+    'huston','violence','god bless','west arfican','artist','music artists',
+     r'\bhiv\b',r'\barfica\b',r'\bbia\b',r'\bbias\b',r'\brap\b',r'\bsoul\b',r'\byouth\b',
+    r'\brap\b',r'\batlanta\b',r'\bjr\b',
+IsRaceMentioned: A boolean indicator (True/False) of whether the 'Description' contains any racial-related context based on the 'Racekeywords' list. True means that at least one race-related keyword from the race_keywords list was found in the 'Description' column for that row.False means that no race-related keywords were found in the 'Description' column for that row.
+The matching process is case-insensitive to ensure that all instances are captured regardless of text capitalization. The keywords included in the analysis encompass a broad spectrum of racial, ethnic, and cultural identifiers, as well as terms associated with racial issues and diversity efforts.
+It then creates a new column called ' KeywordOccurrences' by extracting the corresponding racial linguistic words when the project is flagged as True in the IsRaceMentioned column.
+The example of KeywordOccurrences: {'Black student': 12, 'Black space': 1, 'Black-owned': 1, 'black professional': 1, 'black innovator': 1, 'Black community': 1, 'African American': 1, 'underrepresented': 1}
+
+
+Creator Identification
+Connection and Difference between SingleCreator and Verified:
+The 'CreatorName' is extracted on the project page on the Kickstarter platform.  There are three types of names:
+ only real person name,like:'Matt Burks',"Nicholas Boggs & Joshua Unsderfer";
+
+real person name and organization name mixed,for example, 'Clifton Broumand/Man & Machine, Inc.'，'Sam Kirby (Brisk Innovation, LLC)'; 
+
+only contain organization name,like:'Big Kid Games','C-Force."SingleCreator" refers to individual creators identified through applying 
+
+Named Entity Recognition (NER) technology to the "CreatorName" field.Each "SingleCreator" is assigned a unique "CreatorID" for individual analysis.
+
+The CreatorID column combines the SingleCreator name with the date they joined Kickstarter ('joined'), creating a unique identifier for each creator. The account name ("Creatorname") and joined time('Joined') is key, as it ties project creation and support to a specific account, regardless of changes in verified identity.
+
+"Verified" focuses on the verification status of a Kickstarter account, including the verified name. This means a single account (CreatorName) can be associated with different verified identities, but the account's record of creating and supporting projects is tied to the "CreatorName," not the specific verified identity. People will be able to access the 'Verified' in the “About the creator” section by clicking on the creator's avatar or creator name on the project page of the Kickstarter.
+
+ 'SingleCreator' and 'Verified' all contain the names and may get the race information.So we can do race and gender analysis to predict the race and gender of creators based on their names for a more detailed examination.Columns associated with verified information typically contain the word "Verified" in their names. 
+include:
+PrdTrcVerifiedNameGender
+EthClrVerifiedNameRace
+PyEthVerifiedNameRace
+PrdTrcVerifiedNameRace
+MajorVerifiedNameRace
+
+Columns associated with "SingleCreator" don't include "Verified" in their names but may include indicators like indicators like "Creator":
+Examples include:
+PrdTrcCreatorNameGender
+EthClrCreatorNameRace
+PyEthCreatorNameRace
+PrdTrcCreatorNameRace
+MajorCreatorNameRace
+
+We conducted multidimensional analyses on "CreatorName"  resulting in the following new variables:
+
+ ExtractedCreators:The ExtractedCreators column is generated by applying the Flair library's capabilities for Named Entity Recognition (NER) to the 'CreatorName' field. This process effectively identifies and separates individual names within a single entry, offering a detailed view of the people or entities behind a project.
+Example: For a CreatorName entry of "Nicholas Boggs & Joshua Unsderfer", the ExtractedCreators column will list "Nicholas Boggs, Joshua Unsderfer", indicating two distinct individuals involved in the project.
+
+IsOrganization and Organization_Context:The dataset encompasses projects created by both individuals and organizations. To distinguish between these, two columns are introduced: IsOrganization and Organization_Context.
+IsOrganization is a boolean indicator that flags whether a project creator is identified as an organization, based on specific keywords found in the CreatorName, such as "Inc.", "LLC", "Foundation", etc.
+Organization_Context lists the matched keywords that indicate an organizational entity, providing insight into the nature of the organization involved.
+Example: If CreatorName contains "Jane,XYZ Foundation", IsOrganization will be True, and Organization_Context will list "Foundation", indicating organizational backing.
+
+The CoCreatorNum column represents the number of co-creators involved in a project, which is calculated by taking the total number of creators identified within the ExtractedCreators field and subtracting one. This approach assumes there is a primary creator, and the CoCreatorNum reflects additional collaborators beyond this primary figure.
+For example, given the CreatorName "Nicholas Boggs & Joshua Unsderfer", with ExtractedCreators listed as "Nicholas Boggs, Joshua Unsderfer", the total number of creators is 2. Subtracting one to account for the primary creator, the CoCreatorNum would be 1, indicating that there is one co-creator in addition to the primary creator.
+
+SingleCreator:To enable a granular analysis of contributions to projects, the ExtractedCreators list is disaggregated into separate rows per creator in the SingleCreator column. This allows for individual analysis of contributions.
+Example: From a CreatorName entry "Justin and Joel Johnson", two separate rows are generated:
+ProjectID: 28, SingleCreator: "Justin", with a unique CreatorID "Justin_20130901" reflecting the join date.
+ProjectID: 28, SingleCreator: "Joel Johnson", with a unique CreatorID "Joel Johnson_20130901".
+
+CreatorID:The CreatorID column combines the SingleCreator name with the date they joined Kickstarter ('joined'), creating a unique identifier for each creator. The account name ("Creatorname") and joined time('Joined') is key, as it ties project creation and support to a specific account, regardless of changes in verified identity. Data is thus consistently anchored to the creator's' SingleName' and 'join '.This distinction is crucial for accurately tracking the activities of individuals with common names across different projects and time.
+Example: For a project involving "Justin and Joel Johnson", with a join date of September 1, 2013, the respective CreatorIDs would be "Justin_20130901" and "Joel Johnson_20130901". This unique identifier helps in distinguishing creators and assessing their project portfolio over time, even when the CreatorName and Joined date are identical but the Verified status may differ.
+
+
+NoCreatorIdentified:We assign True to NoCreatorIdentified for rows where CreatorID is 'NAN', indicating that no creator could be identified for those projects.
+
+IsFirstTimer: A binary indicator derived from the creators' historical project data. It flags whether a SingleCreator is launching a Kickstarter project for the first time (True) or not (False) in our dataset ,started from January 1, 2015, to December 31, 2022, specifically within the 'Technology', 'Design', or 'Game' categories.  The proportion of first-time creators is 0.85(85%) .
+
+ProjectsByCreatorID: This count metric tallies the total number of projects initiated by by each 'SingleCreator' in our dataset. ,started from January 1, 2015, to December 31, 2022, specifically within the 'Technology', 'Design', or 'Game' categories.
+
+
+
+Race and Gender Analysis:
+Creator names were dissected into 'FirstNameVerified' and 'LastNameVerified' from the 'Verified' field, along with 'FirstName_new' and 'LastName_new' from the 'SingleCreator' field, to enable a nuanced examination.When the SingleCreator and Verified,name is single word We treat it as only as the first name compared to the previous version.The previous version treat the single word as the firstname and lastname.
+The previous version only extract the firstname('FirstName_new') and lastname("LastName_new') of the 'CreatorName' after removing non-ASCII characters in our dataset.Validate the accuracy of the 'ExtractedCreators' column by comparing it against manual extraction,it is about 95%.FirstName_new (object): First name of the project creator (a cleaned or processed version).
+80.	LiklyRacePredicted (object): Overall predicted race of the project creator.
+81.	LiklyRaceMajority (float64): Majority race predicted for the project creator.(at least two methods agreed)
+82.	LiklyRaceAll (float64): all predicted methods agreed for the project creator.
+83.	LiklyRaceAny (float64): Indicator of any predicted race for the project creator.
+84.	LiklyGender_new (float64): Predicted gender of the project creator (a cleaned or processed version).
+
+
+IsNameMatch: A boolean variable that indicates whether the 'Verified' and 'SingleCreator' entries share the same name in lower case. If the names match, it is True; otherwise, it is False.
+
+Tools and Methodologies:
+Python's ethnicolr Package: Employed for its capacity to predict race and ethnicity from names, using comprehensive datasets including the US Census, Florida's voter registration, and Wikipedia.Here we employ the funciton in Wikipedia data and use both the first name and the last name to predict the race. It classifies names into specific ethnic groups such as GreaterAfrican and GreaterEuropean, among others, providing detailed ethnicity insights.
+
+Python's pyethnicity package is designed to predict an individual's race and ethnicity based on their name and location. It leverages a comprehensive dataset compiled from voter registrations across all 50 states.Using advanced machine learning techniques, such as Bidirectional LSTM models and sophisticated geocoding algorithms like BISG and BIFSG, Here we employ the funciton using both the first name and the last name to predict the race. Pyethnicity achieves superior performance compared to existing models.license. asian', 'black', 'hispanic', 'white'.Available from https://github.com/CangyuanLi/pyethnicity
+
+
+R's predictrace Package: The goal of predictrace is to predict the race of a surname or first name and the gender of a first name. This package uses U.S. Census data which says how many people of each race has a certain surname. For first name data, this package uses data from Tzioumis (2018). From this we can predict which race is mostly likely to have that surname or first name. The possible races are American Indian, Asian, Black, Hispanic, White, or two or more races. For the gender of first names, this package uses data from the United States Social Security Administration (SSA) that tells how many people of a given name are female and how many are male (no other genders are included). I use this to determine the proportion of each gender a name is, and use the gender with the higher proportion as the most likely gender for that name. Please note that the Census data on the race of first names is far smaller than the SSA data on the gender of first names, so you will match far fewer first names to race than to gender.
+Full citation for the Tzioumis data: Tzioumis, Konstantinos (2018) Demographic aspects of first names, Scientific Data, 5:180025 [dx.doi.org/10.1038/sdata.2018.25].Utilized for determining likely race and gender from first and last names separately, based on U.S. Census data. Here we employ the funciton to use the first name to predict the gender and the last name to predict the race. This tool expands the racial categories to 'NaN',American Indian, Asian, Black, Hispanic, and White, and mixrace,including'white,black'.
+It also predicts gender ,'NaN',female,male,and mixgender'female,male'.
+
+The results are simplified into broader categories for streamlined interpretation, including 'asian', 'black', 'hispanic', and 'white'.For example,we converted the 'american_indian' into 'asian'. For mixrace of a 'SingleCreator' and 'Verified', we prioritize the minority especially the black.We keep' black'if there is 'black' in the prediction.For example,for 'white,black' we only keep the 'black'.and for mix gender, we prioritize female if there is 'female' in the prediction.For example,for'female,male' we keep the 'female'.
+
+
+
+'PrdTrcCreatorNameGender'
+Description: Predicts the gender of  the 'FirstName_new'of 'SingleCreator' using R's predictrace package.The accuracy of the column would be approximately 88%. 'LiklyGender_new' in the previous vesion.
+
+Categories: 'male', 'female', 'NaN' (not specified).
+
+'PrdTrcVerifiedNameGender'
+Description: Predicts the gender of  the first name  of 'Verified' names  using R's predictrace package.The accuracy of the column would be approximately 90%. 
+
+Categories: 'male', 'female', 'NaN' (not specified).
+
+
+
+'EthClrCreatorNameRace'
+Description: Predicts the racial background of the name listed under'FirstName_new','LastName_new' of the 'SingleCreator' using Python's ethnicolr package  with  both the first name and last name.The accuracy of the column would be approximately 72%. referred to 'LiklyRacePredicted'.
+
+Categories: 'asian', 'black', 'hispanic', 'white', 'NaN' (not specified).
+
+'PyEthCreatorNameRace'
+Description: Predicts the racial background of the name listed under 'FirstName_new','LastName_new' of the 'SingleCreator'using Python's pyethnicity package with  both the first name and last name.The accuracy of the column would be approximately 76%. 
+
+Categories: 'asian', 'black', 'hispanic', 'white', 
+
+'PrdTrcCreatorNameRace'
+Description: Predicts the racial background of the name listed under ''FirstName_new','LastName_new' of the 'SingleCreator'using R's predictrace package with  the last name.The accuracy of the column would be approximately 80%. Referred to the 'LiklyRaceLast' in the previous version.Used the same package.If  the prediction of the 'LastName_new' using the lastname method of the package is 'NaN',we will take the value of firstname method of the package of 'FirstName_new'; otherwise, it takes the value of 'LastName_new' using the lastname method of the package.
+
+
+Categories: ''asian', 'black', 'hispanic', 'white',  'NaN' (not specified).
+
+'MajorCreatorNameRace'
+Description: Predicts the major racial background of the name listed under 'FirstName_new','LastName_new' of the 'SingleCreator'(at least two methods agreed).The same of the 'LiklyRaceMajority' in the previous version.
+ This column  reflects the predominant race from the creator's race predictions ( 'EthClrCreatorNameRace', 'PyEthCreatorNameRace','PrdTrcCreatorNameRace'), only if the race appears at least twice among these predictions. If a race does not appear at least twice among the predictions, the result is set to NaN, indicating that there's no clear majority race within the provided race predictions.The accuracy of the  column would be approximately 90%. 
+Categories: 'asian', 'black', 'hispanic', 'white', .'NaN' (not specified).
+
+
+'EthClrVerifiedNameRace'
+Description: Predicts the racial background of 'FirstNameVerified', 'LastNameVerified' of the  'Verified' names using Python's ethnicolr package.The accuracy of the  column would be approximately 72%. 
+Categories: 'asian', 'black', 'hispanic', 'white',  'NaN' (not specified).
+
+'PyEthVerifiedNameRace'
+Description: Predicts the racial background of ''FirstNameVerified', 'LastNameVerified' of the  'Verified' names using Python's pyethnicity package.The accuracy of the column would be approximately 78%. 
+Categories: ''asian', 'black', 'hispanic', 'white', 
+
+'PrdTrcVerifiedNameRace'
+Description: Predicts the racial background of 'FirstNameVerified', 'LastNameVerified' of the  'Verified' names using R's predictrace package.The accuracy of the column would be approximately 80%. 
+Categories: 'asian', 'black', 'hispanic', 'white',  'NaN' (not specified).
+
+'MajorVerifiedNameRace'
+Description: Predicts the major racial background of 'FirstNameVerified', 'LastNameVerified' of the  'Verified' names(at least two methods agreed).Similarly,this column identifies the major race from the verified race predictions ( 'EthClrVerifiedNameRace', 'PyEthVerifiedNameRace',  'PrdTrcVerifiedNameRace'), with the race needing to appear at least twice to be considered. The accuracy of the column would be approximately 90%. 
+
+If a race does not appear at least twice among the predictions, the result is set to NaN, indicating that there's no clear majority race within the provided race predictions
+Categories: ''asian', 'black', 'hispanic', 'white', 'NaN' (not specified).
+
+ Then we create IsProjectUSD is a binary indicator that helps identify whether a project on Kickstarter is denominated in US dollars (USD) or not. If IsProjectUSD is set to True, it means the project's monetary values  'Pledged', 'Goal', and 'RewardAmount' we collected from the kicstarter platform are all in USD. Conversely, if it is set to False, it indicates that the project uses a currency other than USD, and the monetary values have been converted to USD using the exchange rate provided by Kickstarter's platform on 2024-03-18.
+
+
+
+Detailed Variable Descriptions
+1.	Project_CreatorID (String): A unique identifier combining the project's ID and the creator's ID, facilitating the association between projects and their creators.We can use NoCreatorIdentified is 'False' to filter the data with Project_CreatorID is not 'NaN' .
+
+
+2.	ProjectID (Integer): Unique identifier for each project, used to track and distinguish between different Kickstarter campaigns.
+
+3.	CreatorID (String): A unique identifier generated for each creator, based on their name and the date they joined Kickstarter. We can use NoCreatorIdentified is 'False' to filter the data with CreatorID is not 'NaN' .
+4.	SingleCreator (String): Names of individual creators extracted from the original CreatorName field using Named Entity Recognition (NER). It provides a clearer view of the individuals behind a project.
+
+5.	CreatorName (String): The name(s) of the project's creator(s) as listed on Kickstarter. This field may contain single or multiple names depending on the project.
+
+6.	Verified (String): The name that the creator's identity has been verified by Kickstarter. 
+7.	State (Boolean): Represents the project's success status, with True indicating a successful campaign and False indicating an unsuccessful one.
+
+8.	Total Pledges (Float): Applied the log(x + 1) to the 'Pledged' column to transform the total amount pledged for each project. This transformation helps to normalize the distribution and reduce the skewness of funding amounts.
+
+9.	Backer (Float): The number of backers who have supported the project.
+
+10.	Category (String): The category under which the project is listed on Kickstarter, reflecting its general theme or industry.'Technology', 'Game','Design'
+
+11.	UpdateCount (Integer): The number of updates posted by the creators during the campaign, indicating engagement and communication with backers.
+
+12.	CommentCount (Integer): The number of comments on the project page, serving as a measure of community interest and interaction.
+
+13.	ProWeLove (Boolean): Indicates whether the project has been flagged as a "Project We Love" by Kickstarter, denoting a high-quality or particularly innovative campaign.
+
+14.	Pledged (Float): The total amount of money pledged to the project (non-log-transformed).
+
+15.	Goal (Float): The financial goal set by the project creators, indicating the amount they aim to raise.
+
+16.	IsFeatured (Boolean): True if the project has been featured by Kickstarter, highlighting its prominence or appeal.'IsFeatured' is 'Featured'In the version of 0311. 
+
+17.	IsConnect (Boolean): Indicates whether the creator has linked their project to social media platforms, enhancing visibility.'IsConnect' is 'Connect'In the version of 0311. 
+
+
+18.	IsIdentityVerified, IsVerifiedIDAvailable (Boolean): Markers of identity verification, signaling credibility and authenticity to potential backers.
+
+19.	WebNum (Integer): The number of web resources or external links provided by the creator, potentially indicating broader project support or references.'WebNum' is 'webNum'In the version of 0311. 
+
+
+20.	NoCreatorIdentified： Identifies whether the entriy has CreatorId、SingleCreator.True for not SingleCreator extracted and CreatorID.
+
+21.	IsFirstTimer (Boolean): Identifies whether this is the creator's first Kickstarter project,
+
+22.	ProjectsByCreatorID (Float): Counts the total number of projects launched by each single creator, reflecting their activity and possibly their success rate on Kickstarter.
+
+23.	CoCreatorNum (Integer): The count of co-creators involved in the project, derived from the ExtractedCreators field. This number reflects the collaborative nature of the project.
+
+24.	IsOrganization (Boolean): A True/False flag determined by the presence of organization-related keywords in the CreatorName, suggesting the project's backing by a formal group or company.
+
+25.	High_Educated_Bio (Boolean): Indicates whether the creator's biography mentions a high level of education, which could influence backers' perception of the project's credibility. "True" may indicate higher education presence, while "False" indicates otherwise.
+
+26.	Education_Level (Category): Categories of  the highest education level mentioned in the creator's biography. Categories include 'Below Bachelors', 'Bachelors', 'Graduate', and 'Doctorate'.
+
+27.	IsRaceMentioned (Boolean): Flags whether the project's description includes keywords related to race or ethnicity or black linguistic words.
+
+28.	KeywordOccurrences (Object): Details specific race-related keywords found in the project description, offering insights into the project's cultural or demographic focus.
+
+29.	Days (Integer): The total duration of the crowdfunding campaign, from start to end.
+
+30.	Time span (float): The log-transformed duration of the campaign in days, addressing disparities between different campaign lengths.
+31.	Financing goal (float): Log-transformed 'Goal' value, standardizing financial targets across projects.
+
+32.	YearStartDate, MonthStartDate, DayStartDate, YearEndDate, MonthEndDate, DayEndDate (int32): Breakdown of the project's start and end dates into year, month, and day for detailed temporal analysis.
+
+
+33.	ProLocationState and CreatorLocationState (string): State abbreviations from 'ProjectLocation' and 'CreatorLocation', respectively, indicating the geographic origin of the project and its creator.,'CreatorLocationState' is 'CreaLocationState' in the version of 0311. 
+
+
+34.	IsLocationMatch (bool): True if the project and creator share the same location; otherwise, False. Indicates local versus distant project origins.IsDomesticCreator (bool): True if the creator is based in the United States; False if located outside the US.
+
+35.	IsNameMatch: A boolean variable that indicates whether the 'Verified' and 'SingleCreator' entries share the same name in lower case. If the names match, it is True; otherwise, it is False.
+
+36.Gender Prediction:
+
+PrdTrcCreatorNameGender: Predicts the gender of 'SingleCreator' based on the first name using R's predictrace package.
+PrdTrcVerifiedNameGender: Predicts the gender of 'Verified' individuals based on the first name using R's predictrace package.
+
+37.Race Prediction:
+
+EthClrCreatorNameRace: Predicts the race of 'SingleCreator' based on both the first name and last name using Python's ethnicolr package.
+PyEthCreatorNameRace: Predicts the race of 'SingleCreator' based on both the first name and last name using Python's pyethnicity package.
+PrdTrcCreatorNameRace: Predicts the race of 'SingleCreator' based on the last name using R's predictrace package.
+MajorCreatorNameRace: Predicts the major race of 'SingleCreator' based on multiple predictions, considering the predominant race.
+
+38.Race Prediction:
+
+EthClrFirstNameLastNameRace: Predicts the race of individuals based on both the first name and last name using Python's ethnicolr package.
+PyEthFirstNameLastNameRace: Predicts the race of individuals based on both the first name and last name using Python's pyethnicity package.
+PrdTrcLastNameRace: Predicts the race of individuals based solely on the last name using R's predictrace package.
+MajorVerifiedNameRace: Predicts the major race of individuals based on multiple predictions, considering the predominant race.
+ 
+39.	DescriptionLength, Log_DescriptionLength (Integer, Float): Length of the project description and its log transformation, indicating the extent of detail provided.
+
+40.	DescriptionSentiment, DescriptionClarity (Float): Sentiment and clarity scores for the project description, assessing the tone and readability.
+
+41.	RewardNum, AverageAmount, AverageDeliveryTime, AvailableRewards (Integer, Float): Metrics related to project rewards, including count, average pledge amount, delivery timeframe, and availability, reflecting the project's reward structure.
+
+42.	CombinedRewardDescription, RewardDescriptionSentiment, RewardDescriptionClarity, RewardDescriptionLength (String, Float, Float, Integer): Attributes of the reward descriptions, such as combined text, sentiment, clarity, and length, providing insights into reward presentation.
+
+43. IsProjectUSD(bool) :a binary indicator that helps identify whether a project on Kickstarter is denominated in US dollars (USD) or not. If IsProjectUSD is set to True, it means the project's monetary values  'Pledged', 'Goal', and 'RewardAmount' we collected from the kicstarter platform are all in USD. Conversely, if it is set to False, it indicates that the project uses a currency other than USD, and the monetary values have been converted to USD using the exchange rate provided by Kickstarter's platform on 2024-03-18.
+
+
+
+Reference
+Laohaprapanon, S., Sood, G., & Naji, B. (2022). ethnicolr: Predict Race and Ethnicity From Name (Version 0.9.1) [Software]. Available from https://github.com/appeler/ethnicolr
+
+Li, Cangyuan. (2023). Can We Trust Race Prediction? arXiv preprint arXiv:2307.08496.
+
+
+Rhue, Lauren and Clark, Jessica. 2022. "Who Are You and What Are You Selling? Creator-Based and Product-Based Racial Cues in Crowdfunding," MIS Quarterly, (46: 4) pp.2229-2260.
+
+Tzioumis, K. (2018). Demographic aspects of first names. Scientific Data, 5, 180025. https://dx.doi.org/10.1038/sdata.2018.25
+
+Kaplan, J. (2023). predictrace: Predict the Race and Gender of a Given Name Using Census and Social Security Administration Data (Version 1.7.1) [Software]. Available from https://github.com/jacobkap/predictrace, https://jacobkap.github.io/predictrace/.
+
+Kickstarter Help Center. Available from https://help.kickstarter.com/hc/en-us.
